@@ -2,14 +2,15 @@ package com.softech.translationapp
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.karumi.dexter.Dexter
@@ -18,23 +19,29 @@ import com.karumi.dexter.listener.PermissionDeniedResponse
 import com.karumi.dexter.listener.PermissionGrantedResponse
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
-import kotlinx.android.synthetic.main.activity_main.*
+import com.softech.translationapp.adapter.GalleryImageAdapter
+import com.softech.translationapp.databinding.ActivityMainBinding
+import com.softech.translationapp.util.GalleryFetcher
+import dmax.dialog.SpotsDialog
 
 
 class MainActivity : AppCompatActivity(), PermissionListener {
 
 //    lateinit var rxPermissions: RxPermissions
+    lateinit var dialog: android.app.AlertDialog
+    lateinit var mainBinding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+
+        dialog = SpotsDialog.Builder().setCancelable(false).setContext(this).build()
 
 //         rxPermissions = RxPermissions(this);
-
 //            init()
         requestPermissions()
+        Log.d("Usman","onCreate, Main Activity Called")
     }
-
 
 /*
     private fun init() {
@@ -73,6 +80,8 @@ class MainActivity : AppCompatActivity(), PermissionListener {
 
 
     override fun onPermissionGranted(response: PermissionGrantedResponse?) {
+
+        dialog.show()
         initVideoFetcher()
     }
 
@@ -120,7 +129,6 @@ class MainActivity : AppCompatActivity(), PermissionListener {
     }
 
 
-
     private fun setList(mediaOptions: ArrayList<String>) {
         val gridLayoutManager = GridLayoutManager(
             applicationContext,
@@ -128,8 +136,12 @@ class MainActivity : AppCompatActivity(), PermissionListener {
             LinearLayoutManager.VERTICAL,
             false
         )
-        rvGallery.layoutManager = gridLayoutManager
-        rvGallery.adapter = GalleryImageAdapter(this, mediaOptions)
+        mainBinding.rvGallery.layoutManager = gridLayoutManager
+        mainBinding.rvGallery.adapter =
+            GalleryImageAdapter(
+                this,
+                mediaOptions
+            )
     }
 
 
@@ -142,6 +154,7 @@ class MainActivity : AppCompatActivity(), PermissionListener {
 
                 mediaOptions.addAll(paths)
                 setList(mediaOptions)
+
             }
         }
         imageFetcher.execute()
@@ -158,6 +171,8 @@ class MainActivity : AppCompatActivity(), PermissionListener {
 
                 mediaOptions.addAll(paths)
                 setList(mediaOptions)
+                dialog.dismiss()
+
             }
         }
         videoFetcher.execute()

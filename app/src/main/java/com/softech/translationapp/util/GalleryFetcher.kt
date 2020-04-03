@@ -1,4 +1,4 @@
-package com.softech.translationapp
+package com.softech.translationapp.util
 
 import android.content.Context
 import android.database.Cursor

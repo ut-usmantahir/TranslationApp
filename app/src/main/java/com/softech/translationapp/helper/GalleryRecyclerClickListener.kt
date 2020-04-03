@@ -1,4 +1,4 @@
-package com.softech.translationapp
+package com.softech.translationapp.helper
 
 interface GalleryRecyclerClickListener {
 

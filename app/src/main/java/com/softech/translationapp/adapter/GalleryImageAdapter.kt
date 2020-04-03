@@ -1,4 +1,4 @@
-package com.softech.translationapp
+package com.softech.translationapp.adapter
 
 
 import android.content.Context
@@ -7,18 +7,17 @@ import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import androidx.core.content.ContextCompat.startActivity
+import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.CircularProgressDrawable
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
-import kotlinx.android.synthetic.main.files_list.view.*
+import com.softech.translationapp.R
+import com.softech.translationapp.VideoPlayActivity
+import com.softech.translationapp.databinding.LayoutFilesItemBinding
+import com.softech.translationapp.helper.GalleryRecyclerClickListener
 import java.io.File
-
-import com.softech.translationapp.GalleryRecyclerClickListener
 
 
 class GalleryImageAdapter(private val context: Context, private val mediaOptions: ArrayList<String>): RecyclerView.Adapter<GalleryImageAdapter.MyViewHolder>() {
@@ -26,8 +25,13 @@ class GalleryImageAdapter(private val context: Context, private val mediaOptions
     var listener: GalleryRecyclerClickListener? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
-        val itemView = LayoutInflater.from(context).inflate(R.layout.files_list,parent,false)
-        return MyViewHolder(itemView)
+
+//        val itemView = LayoutInflater.from(context).inflate(R.layout.layout_files_item,parent,false)
+
+        return MyViewHolder(
+            //return itemView
+            DataBindingUtil.inflate(LayoutInflater.from(parent.context), R.layout.layout_files_item, parent, false)
+        )
     }
 
     override fun getItemCount(): Int {
@@ -50,16 +54,17 @@ class GalleryImageAdapter(private val context: Context, private val mediaOptions
             .load(Uri.fromFile(File(mediaOptions[position])))
             .apply(RequestOptions()
                 .placeholder(proBar()))
-            .into(holder.imageView)
+            .into(holder.filesListBinding.imageView)
 
 
-        holder.imageView.setOnClickListener {
+        holder.filesListBinding.imageView.setOnClickListener {
             Log.d("Usman","setOnClickListener: ")
             Log.d("Usman","setOnClickListener: Path ${mediaOptions[position]}")
 
             listener?.onItemClicked(mediaOptions[position])
 
-            val intent = Intent(context,VideoPlayActivity::class.java)
+            val intent = Intent(context,
+                VideoPlayActivity::class.java)
 
             intent.putExtra("path",mediaOptions[position].toString())
 
@@ -69,25 +74,23 @@ class GalleryImageAdapter(private val context: Context, private val mediaOptions
         }
 
         // Picasso.get().load(movieList[position].imageurl).into(holder.image)
-//        holder.txt_name.text = movieList[position].name
-//        holder.txt_team.text = movieList[position].team
-//        holder.createdby.text = movieList[position].createdby
     }
 
+/*
     class MyViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
 
         var imageView: ImageView
-//        var txt_name: TextView
-//        var txt_team: TextView
-//        var createdby: TextView
 
         init {
             imageView = itemView.image_view
-//            txt_name = itemView.txt_name
-//            txt_team = itemView.txt_team
-//            createdby = itemView.txt_createdby
 
         }
 
     }
+*/
+        inner class MyViewHolder(
+            val filesListBinding: LayoutFilesItemBinding
+        ) : RecyclerView.ViewHolder(filesListBinding.root)
+
+
 }

@@ -8,29 +8,36 @@ import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
 import android.view.View.OnTouchListener
 import android.widget.MediaController
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.ViewModelProviders
 import com.softech.translationapp.databinding.ActivityVideoPlayBinding
+import com.softech.translationapp.helper.GalleryRecyclerClickListener
+import com.softech.translationapp.viewmodel.MainActivityViewModel
 
 
-class VideoPlayActivity : AppCompatActivity(), GalleryRecyclerClickListener {
+class VideoPlayActivity : AppCompatActivity(),
+    GalleryRecyclerClickListener {
 
     lateinit var mGestureDetector:GestureDetector
      var path: String? = null
     lateinit var mainBinding: ActivityVideoPlayBinding
     lateinit var media: MediaController
+    lateinit var model: MainActivityViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 //        setContentView(R.layout.activity_video_play)
         mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_video_play)
-        Log.d("Usman","VideoPlayActivity :onCreate")
+        Log.d("Usman","onCreate, VideoPlayActivity")
 
         actionBar?.hide()
 
+         model = ViewModelProviders.of(this)[MainActivityViewModel::class.java]
 
         setPath()
-//        getPath()
+
 //        /storage/emulated/0/WhatsApp/Media/WhatsApp Video/VID-20200124-WA0006.mp4
     }
 
@@ -40,15 +47,28 @@ class VideoPlayActivity : AppCompatActivity(), GalleryRecyclerClickListener {
          path = array
         Log.d("Usman","onItemClicked: ${path}")
 
-//        setPath()
     }
     private fun setPath(){
+
         Log.d("Usman","setPath : ${path}")
 
         val bundle = intent.extras
         var pathUri = bundle?.get("path")
 
-        mainBinding.vvVideoView.setVideoURI(Uri.parse(pathUri.toString()))
+        model.setPath(pathUri.toString())
+
+        initPlayer()
+
+        mGestureDetector = GestureDetector(this, mGestureListener)
+
+//        mainBinding.vvVideoView.setOnTouchListener(mTouchListener)
+
+        Log.d("Usman","setPath => pathUri : ${pathUri}")
+    }
+    fun initPlayer(){
+        val uri = Uri.parse(model.getPath())
+
+        mainBinding.vvVideoView.setVideoURI(uri)
 
         media = MediaController(this)
 
@@ -56,14 +76,17 @@ class VideoPlayActivity : AppCompatActivity(), GalleryRecyclerClickListener {
         media.setAnchorView(mainBinding.vvVideoView)
 
         mainBinding.vvVideoView.setKeepScreenOn(true)
+
+//        model.setVideoSeekPosition( mainBinding.vvVideoView.currentPosition)
+
+        if (model.getVideoSeekPosition() > 0) {
+            Log.d("Usman","Current Position of Video ${model.getVideoSeekPosition()}")
+
+            mainBinding.vvVideoView.seekTo(model.getVideoSeekPosition())
+        } else {
+            mainBinding.vvVideoView.seekTo(1);
+        }
         mainBinding.vvVideoView.start()
-           mainBinding.vvVideoView.seekTo( 1 )
-
-        mGestureDetector = GestureDetector(this, mGestureListener)
-
-//        mainBinding.vvVideoView.setOnTouchListener(mTouchListener)
-
-        Log.d("Usman","setPath => pathUri : ${pathUri}")
 
     }
     val mTouchListener = OnTouchListener { v, event ->
@@ -80,12 +103,18 @@ class VideoPlayActivity : AppCompatActivity(), GalleryRecyclerClickListener {
             return true
         }
     }
+
+    override fun onPause(){
+        super.onPause()
+
+        model.setVideoSeekPosition( mainBinding.vvVideoView.currentPosition)
+        Log.d("Usman","onPause: Current Position of Video: ${model.getVideoSeekPosition()}")
+    }
+
 /*
-
-    fun getPath(){
-        Log.d("Usman","getPath: ${path}")
-
-        mainBinding.vvVideoView.setVideoURI(path as Uri)
+    override fun onBackPressed() {
+        super.onBackPressed()
+        Toast.makeText(this,"Press again to exit",Toast.LENGTH_SHORT).show()
     }
 */
 
